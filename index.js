@@ -40,8 +40,12 @@ async function run() {
     // Users Start 
     app.post('/users', async(req, res) => {
        const user = req.body
-
-       
+      //  insert email if user doesn't exists
+      const query = {email: user.email}
+      const existingUser = await userCollection.findOne(query)
+      if(existingUser){
+        return res.send({message: 'User already exists', insertedId: null})
+      }
        const result = await userCollection.insertOne(user)
        res.send(result)
     })
@@ -49,6 +53,27 @@ async function run() {
     app.get('/users', async(req, res) => {
       const users = await userCollection.find().toArray()
       res.send(users)
+    })
+
+    // Make role as Admin Start 
+    app.patch('/users/admin/:id', async(req, res) => {
+      const id = req.params.id
+      const filter = {_id: new ObjectId(id)}
+      const updatedDoc = {
+        $set: {
+          role: 'admin'
+        }
+      }
+      const result = await userCollection.updateOne(filter, updatedDoc)
+      res.send(result)
+    })
+    // Make role as Admin End
+
+    app.delete('/users/:id', async (req, res) => {
+      const id = req.params.id
+      const query = {_id: new ObjectId(id)}
+      const result = await userCollection.deleteOne(query)
+      res.send(result)
     })
     // Users End
 
@@ -61,6 +86,24 @@ async function run() {
     })
     // Get Menus End
 
+    // Post menu Start
+    app.post('/menu', async(req, res) => {
+      const item = req.body
+      const result = await menuCollection.insertOne(item)
+      res.send(result)
+    })
+    // Post menu End 
+
+    // Delete Menu Start
+    app.delete('/menu/:id', async(req, res) => {
+      const id = req.params.id
+      const query = {_id: new ObjectId(id)}
+      const result = await menuCollection.deleteOne(query)
+      res.send(result)
+    })
+    // Delete Menu End
+    
+    
     // Get Reviews Start
     app.get('/reviews', async(req, res) => {
         const cursor = await reviewCollection.find().toArray()
